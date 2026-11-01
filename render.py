@@ -318,19 +318,15 @@ def render(scenes, motion, scene_duration, hook_duration):
             "-f", "concat", "-safe", "0", "-i", playlist,
             "-c", "copy", "-movflags", "+faststart", joined)
 
-    audio, srt = create_audio_and_captions(scenes, scene_duration)
-    style = ("FontName=DejaVu Sans,FontSize=24,PrimaryColour=&H00FFFFFF,"
-             "OutlineColour=&H00000000,BorderStyle=1,Outline=2,"
-             "Shadow=1,Alignment=2,MarginV=170")
+    audio, _ = create_audio_and_captions(scenes, scene_duration)
     command("ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
             "-i", joined, "-i", audio,
-            "-vf", f"subtitles={srt}:force_style='{style}'",
             "-map", "0:v:0", "-map", "1:a:0",
             "-t", str(scene_duration * len(scenes)),
             "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
             "-crf", "24", "-pix_fmt", "yuv420p", "-c:a", "aac",
             "-b:a", "128k", "-movflags", "+faststart", ROOT / "final.mp4")
-    print(f"SUCCESS: {len(clips)} edited shots, two character voices, captions")
+    print(f"SUCCESS: {len(clips)} edited shots, two character voices, no burned-in captions")
 
 
 def main():
