@@ -1,0 +1,1342 @@
+{
+  "name": "Mila | 120s Hybrid | 6 Qwen Images + 6s Grok + Free GitHub Render",
+  "nodes": [
+    {
+      "id": "add9739b-cbc7-4c44-9b4d-f3248f41669c",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "b8c78bd8-0d33-4778-8df9-23b25f83a484",
+      "name": "Check Kie Balance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.kie.ai/api/v1/chat/credit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "46kHfTBySoOWVhPg",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "id": "dedaaf4a-ddb0-4c31-9afb-333e94c3d723",
+      "name": "40 Credit Safety Gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst response=$input.first().json;\nif(response.code!==200)throw new Error('Kie balance check failed; no generation requested.');\nconst raw=response.data;\nconst available=Number(typeof raw==='object'?(raw?.credits??raw?.balance??raw?.credit):raw);\nif(!Number.isFinite(available))throw new Error('Kie balance format unknown; stopping before paid generation.');\n// Planned: six Qwen2.1 1K images x 4, plus one Grok 6s video x 2.4.\nif(available<40)throw new Error('Need 40 credits of available balance for the planned episode. Current balance: '+available);\nreturn [{json:{available,expected_cost:38.4,max_planned_spend:40}}];\n"
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return (function buildStory() {\n  const startDay = Date.UTC(2026, 10, 1);\n  const today = new Date();\n  const dayIndex = Math.max(0, Math.floor((Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()) - startDay) / 86400000));\n  const episodeNumber = dayIndex + 1;\n  const mysteries = [\n    ['The Mirror of Tomorrow','a mirror that reveals tomorrow','a missing hour from the future','the silver doorway'],\n    ['The Clockwork Garden','a garden where clocks grow on vines','the flowers freezing in time','the copper gate'],\n    ['The Library of Lost Days','a library holding forgotten tomorrows','pages disappearing from history','the book of blue light'],\n    ['The City Above the Clouds','a city floating above purple clouds','the city slowly descending','the crystal bridge'],\n    ['The Forgotten Star','a small star trapped in a snow globe','the night sky turning blank','the starlight chamber'],\n    ['The Ocean of Memories','a blue ocean that reflects memories','the waves losing their colors','the luminous lighthouse'],\n    ['The Door Without a Shadow','a door that casts no shadow','shadows moving on their own','the golden key'],\n    ['The Train to Yesterday','a train that travels backward in time','the final station vanishing','the glowing railway switch'],\n    ['The City of Sleeping Robots','a robot city in mysterious silence','every friendly robot losing power','the heartbeat generator'],\n    ['The Compass of Wishes','a compass that points to impossible places','the compass spinning out of control','the secret North Tower'],\n    ['The Moonlit Maze','a maze of silver moonbeams','the exit slowly dissolving','the moonstone arch'],\n    ['The Painted Planet','a planet hidden inside a painting','its beautiful colors disappearing','the artist’s glowing brush']\n  ];\n  const places = ['an abandoned observatory','a glowing woodland','a secret clocktower','a floating science museum','a glass valley','an underground star station','a quiet mountain village','a shimmering seaside city','a mysterious old theater','a sky garden','a deserted amusement park','an impossible train station'];\n  const clues = ['a tiny blue spiral','three blinking lights','a note written backward','a constellation shaped like a key','a musical tone that repeats twice','an arrow that only Pip can see','a silver feather','a reflection with no owner','a glowing geometric symbol','a whisper from the future','a clock that never ticks','a mysterious footprint'];\n  const variants = ['a friendly new companion calls from the portal','another impossible doorway appears in the sky','the same strange symbol starts glowing on Pip','Mila hears a message from her future self','a new ticking sound echoes through the clouds','the rescued city reveals a second mystery'];\n  const mystery = mysteries[dayIndex % mysteries.length];\n  const place = places[Math.floor(dayIndex / mysteries.length) % places.length];\n  const clue = clues[Math.floor(dayIndex / (mysteries.length * places.length)) % clues.length];\n  const twist = variants[(dayIndex + Math.floor(dayIndex / 11)) % variants.length];\n  const [name, discovery, danger, goal] = mystery;\n  const style = 'High-quality cinematic 3D family science-fiction animation. Vertical 9:16. Consistent Mila and Pip designs. Detailed beautiful environments, soft cinematic lighting, expressive faces, clear action.';\n  const scenes = [\n    {scene_number:1,duration:15,scene_prompt:`At ${place}, Mila and Pip discover ${discovery}. Mila wears her familiar teal jacket and orange backpack. The mystery begins peacefully.`,animation_prompt:`Mila explores ${place} with Pip. The camera reveals ${discovery}. Narrator: \"Something impossible is hiding in plain sight.\" Mila: \"Pip, did you see that?\" Pip: \"I definitely did!\"`},\n    {scene_number:2,duration:15,scene_prompt:`Mila notices ${clue} beside ${discovery}. Pip scans it, projecting friendly glowing holograms.`,animation_prompt:`Mila follows ${clue}. Pip scans the unusual object. Pip: \"This clue belongs to a different time!\" Mila: \"Then we need to find out why.\" Camera glides toward the clue.`},\n    {scene_number:3,duration:15,scene_prompt:`Inside a vivid futuristic landscape, ${danger}. Mila and Pip stare in amazement; the world is still beautiful but urgently needs help.`,animation_prompt:`Show ${danger}. Mila gasps. Mila: \"This place needs our help!\" Pip: \"And we might be running out of time!\" Dramatic family-friendly adventure atmosphere.`},\n    {scene_number:4,duration:15,scene_prompt:`A luminous holographic message displays ${goal} in the distance. Pip points toward a safe adventurous path through a spectacular 3D world.`,animation_prompt:`Pip projects a glowing map pointing to ${goal}. Pip: \"I found our next clue!\" Mila: \"Great. Let's get there together!\" Smooth orbiting camera reveals their route.`},\n    {scene_number:5,duration:15,scene_prompt:`Mila and Pip cross a breathtaking landscape toward ${goal}, navigating harmless magical floating platforms and colorful energy ribbons.`,animation_prompt:`Mila jumps across safe illuminated platforms while Pip flies beside her. Pip: \"Careful, Mila!\" Mila: \"I've got this!\" Beautiful motion and a dynamic tracking shot.`},\n    {scene_number:6,duration:15,scene_prompt:`Close to ${goal}, a glowing puzzle forms from ${clue}. Mila studies the pattern while Pip offers an enthusiastic hint.`,animation_prompt:`Mila and Pip solve a glowing mechanical puzzle together. Pip: \"Try the pattern we saw before!\" Mila: \"You're right!\" The pieces click gently into place.`},\n    {scene_number:7,duration:15,scene_prompt:`The ${goal} lights up, reversing ${danger}. Mila and Pip are relieved as the vibrant futuristic world returns to normal.`,animation_prompt:`Show the world recovering in a glowing cinematic moment. Mila: \"We did it, Pip!\" Pip: \"Teamwork always wins!\" Camera rises toward warm sunlight and beautiful scenery.`},\n    {scene_number:8,duration:15,scene_prompt:`Mila and Pip celebrate. Suddenly, ${twist}. A new mysterious doorway glimmers, promising tomorrow's adventure.`,animation_prompt:`Pip celebrates while Mila smiles. Suddenly ${twist}. Mila: \"Pip, I think another adventure is waiting.\" Narrator: \"What happens next?\" End on a mysterious cinematic cliffhanger.`}\n  ].map(s=>({...s,image_prompt:`${style}\\n${s.scene_prompt}`,animation_prompt:`${style}\\n${s.animation_prompt}`}));\n  const title = `Mila and ${name} | Episode ${episodeNumber}`;\n  const caption = `A new mystery appears for Mila and Pip! Today they discover ${discovery}. Can they save the future?\\n\\n#IfTomorrowBroke #AIAnimation #SciFi #Mystery #Shorts`;\n  return [{json:{episode_id:`ITB-${String(episodeNumber).padStart(4,'0')}`,title,caption,series:'If Tomorrow Broke',total_duration:120,scene_count:8,scenes,scene_prompt:scenes[0].image_prompt,animation_prompt:scenes[0].animation_prompt}}];\n})();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "id": "7f5da656-12a6-4c9b-bb3d-a5f1cfb5fa17",
+      "name": "Build Scene Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $input.first().json;\n\n// ==================================\n// MILA REFERENCE IMAGE\n// ==================================\n\nconst MILA_REFERENCE_URL =\n  \"https://res.cloudinary.com/bygikbss/image/upload/f_png/Gemini_Generated_Image_sbqi0fsbqi0fsbqi\";\n\n// ==================================\n// MILA CHARACTER CONFIGURATION\n// ==================================\n\nconst character_prompt = `\nMAIN CHARACTER: MILA\n\nMila is a 12-year-old adventurous girl.\n\nAPPEARANCE:\n- Medium-length wavy chestnut-brown hair\n- Large expressive brown eyes\n- Teal adventure jacket\n- Dark gray cargo pants\n- Black adventure boots\n- Orange backpack\n\nPERSONALITY:\n- Brave\n- Curious\n- Intelligent\n- Kind\n- Adventurous\n- Expressive\n- Sometimes funny\n\nCHARACTER CONSISTENCY:\n\nUse the provided Mila reference image\nas the primary visual identity.\n\nPreserve her exact:\n- Face and facial features\n- Eye shape and color\n- Hairstyle and hair color\n- Clothing and colors\n- Body proportions\n- Overall character appearance\n\nMila must look like the same character\nin every scene and every episode.\n\nVISUAL STYLE:\n\nHigh-quality cinematic 3D animation.\nFamily-friendly science-fiction adventure.\nProfessional lighting.\nDetailed environments.\nNatural facial expressions.\nSmooth character movements.\nVertical 9:16 composition.\n\nDo not redesign Mila.\n`;\n\n// ==================================\n// PIP CHARACTER CONFIGURATION\n// ==================================\n\nconst pip_prompt = `\nSECONDARY CHARACTER: PIP\n\nPip is Mila's loyal robotic companion.\n\nAPPEARANCE:\n- Small floating robot\n- Compact rounded body\n- White-and-teal metallic exterior\n- Glowing blue expressive eyes\n- Soft orange accent lights\n- Friendly facial expressions\n\nPERSONALITY:\n- Intelligent\n- Funny\n- Loyal\n- Playful\n- Supportive\n- Slightly nervous sometimes\n\nVOICE:\nFriendly and expressive.\nSlightly robotic.\nHumorous personality.\n\nMaintain the same Pip design\nthroughout all scenes.\n`;\n\n// ==================================\n// NEGATIVE PROMPT\n// ==================================\n\nconst negative_prompt = `\nNo character redesign.\nNo different face.\nNo different hairstyle.\nNo clothing changes.\nNo different eye color.\nNo inconsistent proportions.\nNo random replacement characters.\nNo unrelated scenes.\nNo inconsistent visual style.\nNo distorted anatomy.\nNo extra limbs.\nNo blurry faces.\nNo duplicated characters.\nNo flat cartoon style.\nNo unnecessary visual artifacts.\n`;\n\n// ==================================\n// VALIDATION\n// ==================================\n\nif (\n  !Array.isArray(input.scenes) ||\n  input.scenes.length === 0\n) {\n  throw new Error(\"No episode scenes found.\");\n}\n\nif (!MILA_REFERENCE_URL.startsWith(\"https://\")) {\n  throw new Error(\"Invalid Mila reference URL.\");\n}\n\n// ==================================\n// FINAL OUTPUT\n// ==================================\n\nreturn [{\n  json: {\n    ...input,\n\n    reference_images: [\n      MILA_REFERENCE_URL\n    ],\n\n    reference_ready: true,\n\n    character_prompt,\n    pip_prompt,\n    negative_prompt,\n\n    scene_count: input.scenes.length,\n\n    total_duration: input.total_duration,\n\n    scenes: input.scenes,\n\n    scene_prompt: input.scene_prompt,\n\n    animation_prompt: input.animation_prompt\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        300
+      ],
+      "id": "03c4b1c8-7cb2-4dec-bb56-126ef9a80e0e",
+      "name": "Character Config"
+    },
+    {
+      "id": "a0cea800-d526-40b8-9017-117ca9cc9c4d",
+      "name": "Prepare Six Image Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst source=$input.first().json;\nif(!Array.isArray(source.scenes)||source.scenes.length!==8)throw new Error('Expected exactly 8 story scenes.');\nif(!/^https:\\/\\//.test(source.reference_images?.[0]||''))throw new Error('Mila reference image missing.');\n// Scenes 5 and 7 reuse matching landscape visuals (with new zoom/pan).\nconst selected=[1,2,3,4,6,8];\nconst clean=s=>String(s||'').replace(/\\\\n/g,' ').replace(/\\s+/g,' ').trim();\nreturn selected.map(scene_number=>{\n const scene=source.scenes[scene_number-1];\n const prompt=[\n  'A SINGLE family-friendly cinematic 3D animation film still, portrait 9:16.',\n  'Use the reference sheet only to keep the same girl Mila: same face, chestnut wavy hair, brown eyes, teal jacket, dark cargo pants, black boots, orange backpack.',\n  'ONE Mila only, with her small friendly white-and-teal floating robot Pip, blue glowing eyes and orange accents.',\n  'Create one new location/shot, not a multiple-view character turnaround sheet.',\n  'SCENE: '+clean(scene.scene_prompt||scene.image_prompt),\n  'Detailed environment, dramatic soft lighting, vibrant 3D family adventure, natural proportions, no text, no watermark, no duplicates.'\n ].join('\\n\\n');\n return {json:{scene_number,episode_id:source.episode_id,image_prompt:prompt,\n   reference_images:source.reference_images}};\n});\n"
+      }
+    },
+    {
+      "id": "49956ce3-60a3-4e28-b681-ff8c0d3bfedc",
+      "name": "Create Image Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1440,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({model:\"qwen2-1/image-to-image\",input:{image_urls:[$json.reference_images[0]],prompt:$json.image_prompt,aspect_ratio:\"9:16\",resolution:\"1K\",background:\"opaque\",output_format:\"png\",enhance_prompt:false}}) }}",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "85kF4RYAv7JGaHS5",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "c3b5b514-cf3a-4ce0-8cc6-d6cee8df019f",
+      "name": "Validate Six Image Task IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst r=$input.item.json;\nconst scene=$('Prepare Six Image Prompts').all()[$itemIndex]?.json;\nif(r.code!==200||!r.data?.taskId||!scene)throw new Error('Image creation failed at scene '+(scene?.scene_number||$itemIndex+1)+': '+JSON.stringify(r));\nreturn {json:{taskId:r.data.taskId,scene_number:scene.scene_number,episode_id:scene.episode_id,attempt:0}};\n"
+      }
+    },
+    {
+      "id": "ebdc5c78-ed8b-440b-af83-5306620dc3a0",
+      "name": "Collect Six Image IDs",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        300
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      }
+    },
+    {
+      "id": "eb504f59-5dd0-4f65-a0da-4981d2c0992c",
+      "name": "Wait for Six Images",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2160,
+        300
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 45,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "713da4aa-ab05-4d5f-8266-b681fc6d8ab7",
+      "name": "Unpack Image Poll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst obj=$input.first().json;\nconst rows=obj.data||[];\nif(!Array.isArray(rows)||rows.length!==6)throw new Error('Missing one or more image task IDs.');\nreturn rows.map(row=>({json:{taskId:row.taskId,scene_number:Number(row.scene_number),\n  episode_id:row.episode_id,attempt:Number(obj.attempt??row.attempt??0)}}));\n"
+      }
+    },
+    {
+      "id": "8b328da8-ffec-40b2-9240-7a42763827b7",
+      "name": "Check Six Image Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2640,
+        450
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "85kF4RYAv7JGaHS5",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2880,
+        300
+      ],
+      "id": "1c572e34-6bf5-4655-a6e7-e3ac22c7dd55",
+      "name": "Merge Image Results"
+    },
+    {
+      "id": "f58eb62f-12bf-4396-9e65-a1dc777f5302",
+      "name": "Validate Six Images",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst rows=$input.all().map(item=>item.json);\nif(rows.length!==6)throw new Error('Expected exactly 6 image status responses.');\nconst attempt=Math.max(...rows.map(r=>Number(r.attempt||0)))+1;\nif(attempt>50)throw new Error('Image generation took too long.');\nfor(const row of rows){\n if(row.code!==200||!row.data)throw new Error('Image lookup failed for scene '+row.scene_number);\n if(['fail','failed','error'].includes(String(row.data.state).toLowerCase()))\n   throw new Error('Image scene '+row.scene_number+' failed: '+(row.data.failMsg||row.data.failCode||''));\n}\nconst ready=rows.every(r=>r.data.state==='success');\nreturn [{json:{ready,attempt,data:rows}}];\n"
+      }
+    },
+    {
+      "id": "c8c273b5-cc9a-413c-a908-42639d48cbaf",
+      "name": "All Six Images Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3360,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6ece1e30-1b32-42f6-b40d-d7e8d8f6f418",
+              "leftValue": "={{ String($json.ready) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f20f0788-0904-4a15-9792-a3ce7856beb3",
+      "name": "Extract Six Images",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst input=$input.first().json;\nif(!input.ready||input.data?.length!==6)throw new Error('Image task batch is incomplete.');\nreturn input.data.sort((a,b)=>a.scene_number-b.scene_number).map(row=>{\n const data=row.data||{};\n let result={};\n try{result=typeof data.resultJson==='string'?JSON.parse(data.resultJson):(data.resultJson||{});}\n catch(e){throw new Error('Invalid image result JSON for scene '+row.scene_number);}\n const image_url=result.resultUrls?.[0]||data.resultUrls?.[0];\n if(!/^https:\\/\\//.test(image_url||''))throw new Error('No generated image URL for scene '+row.scene_number);\n return {json:{scene_number:row.scene_number,image_url,episode_id:row.episode_id}};\n});\n"
+      }
+    },
+    {
+      "id": "3405ff5b-536a-48cc-84a9-7f7feaca6b1e",
+      "name": "Choose Animated Hook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst first=$input.all().find(i=>i.json.scene_number===1)?.json;\nif(!first?.image_url)throw new Error('Missing scene one image.');\nconst story=$('Build Scene Prompt').first().json;\nreturn [{json:{image_url:first.image_url,\n  animation_prompt:'Cinematic family-friendly 3D animation. Mila in her teal jacket discovers a magical mirror. She looks surprised. Pip hovers gently. Smooth dolly-in camera, expressive eyes, same character appearance as the supplied image. Portrait vertical 9:16. No text, no character redesign.',\n  episode_id:story.episode_id}}];\n"
+      }
+    },
+    {
+      "id": "7d628bdb-1dd6-48a9-94f2-0822180caa7c",
+      "name": "Create Six-Second Grok Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4080,
+        240
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({model:\"grok-imagine/image-to-video\",input:{image_urls:[$json.image_url],prompt:$json.animation_prompt,mode:\"normal\",duration:\"6\",resolution:\"480p\",aspect_ratio:\"9:16\"}}) }}",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "46kHfTBySoOWVhPg",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "id": "be204359-4d38-4064-b8ab-91d9bdcb830e",
+      "name": "Save Hook Task ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst r=$input.first().json;\nif(r.code!==200||!r.data?.taskId)throw new Error('6-second Grok creation rejected: '+JSON.stringify(r));\nreturn [{json:{taskId:r.data.taskId,attempt:0}}];\n"
+      }
+    },
+    {
+      "id": "bafc6e60-f0c9-4981-9521-b6f2eafc6c0d",
+      "name": "Wait for Hook",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4560,
+        240
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 45,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "9a7ef031-5dc4-4cd4-8f72-094da07668c0",
+      "name": "Check Hook Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4800,
+        390
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $('Save Hook Task ID').first().json.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "85kF4RYAv7JGaHS5",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5040,
+        240
+      ],
+      "id": "7f25f03f-5613-4e9f-a5e4-64ad04bde119",
+      "name": "Merge Hook Results"
+    },
+    {
+      "id": "c14e4007-c357-44f2-841d-e15e7f90e49b",
+      "name": "Validate Hook Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5280,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst row=$input.first().json;\nif(row.code!==200||!row.data)throw new Error('Grok hook status request failed.');\nif(['fail','failed','error'].includes(String(row.data.state).toLowerCase()))\n  throw new Error('Grok hook generation failed: '+(row.data.failMsg||row.data.failCode||''));\nconst attempt=Number(row.attempt||0)+1;\nif(attempt>80)throw new Error('Grok hook generation timed out.');\nlet video_url='';\nif(row.data.state==='success'){\n  let result={};\n  try{result=typeof row.data.resultJson==='string'?JSON.parse(row.data.resultJson):(row.data.resultJson||{});}\n  catch(e){throw new Error('Invalid Grok result JSON');}\n  video_url=result.resultUrls?.[0]||row.data.resultUrls?.[0]||'';\n  if(!/^https:\\/\\//.test(video_url))throw new Error('Grok completed but no video URL returned.');\n}\nreturn [{json:{ready:row.data.state==='success',attempt,video_url}}];\n"
+      }
+    },
+    {
+      "id": "e3e98992-d967-4ae2-9d5c-028d276d2cba",
+      "name": "Hook Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5520,
+        240
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "665b1173-d7ca-4166-a966-d997ead57d8d",
+              "leftValue": "={{ String($json.ready) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4fcb1622-08e8-4610-8254-b96547175d08",
+      "name": "Build GitHub Render Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5760,
+        180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst hook=$input.first().json;\nif(!hook.ready||!hook.video_url)throw new Error('Hook video not ready.');\nconst story=$('Build Scene Prompt').first().json;\nconst generated=$('Extract Six Images').all().map(i=>i.json);\nif(generated.length!==6)throw new Error('Need six completed image URLs.');\nconst byNumber=new Map(generated.map(i=>[i.scene_number,i.image_url]));\nconst looks=[1,2,3,4,4,6,6,8];\nconst scenes=story.scenes.map((scene,index)=>{\n const image_url=byNumber.get(looks[index]);\n if(!image_url)throw new Error('Missing a reference visual for scene '+(index+1));\n const animation=String(scene.animation_prompt||'');\n const speech=Array.from(animation.matchAll(/(?:Narrator|Mila|Pip):\\s*\"([^\"]+)\"/g),m=>m[1]);\n const text=speech.join(' ')||String(scene.scene_prompt||'').trim().replace(/\\s+/g,' ');\n const narration=text.split(/\\s+/).slice(0,27).join(' ');\n const caption=String(scene.scene_prompt||'').replace(/\\s+/g,' ').trim().split(/[.!?]/)[0].slice(0,83);\n return {image_url,narration,caption};\n});\nconst run_id=(story.episode_id+'-'+Date.now()).replace(/[^a-zA-Z0-9-]/g,'-');\nreturn [{json:{run_id,title:story.title,caption:story.caption,\n  payload:{episode_id:story.episode_id,run_id,video_url:hook.video_url,\n    hook_duration:6,scene_duration:15,scenes}}}];\n"
+      }
+    },
+    {
+      "id": "16fd1aa3-4d82-4cb0-83ff-31657f8f0975",
+      "name": "Start Free GitHub Render",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6000,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/kariemibrahiem/mila-video-renderer/actions/workflows/render.yml/dispatches",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ref:\"main\",inputs:{run_id:$json.run_id,payload:JSON.stringify($json.payload)}}) }}"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "33a8fef7-047c-4c10-8803-19ed140f2846",
+      "name": "Wait for GitHub",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6240,
+        180
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 30,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "d2c75d78-048c-4760-9ba0-ed8ba498ffa1",
+      "name": "List GitHub Render Runs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6480,
+        320
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/kariemibrahiem/mila-video-renderer/actions/workflows/render.yml/runs?event=workflow_dispatch&per_page=50",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6720,
+        180
+      ],
+      "id": "40ea5ae1-9e0a-409b-8b4c-4673e9b462d6",
+      "name": "Merge GitHub Poll"
+    },
+    {
+      "id": "0e83d6f2-4f43-453c-be52-b090ce8b9324",
+      "name": "Find Our GitHub Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6960,
+        180
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst obj=$input.first().json;\nconst run_id=$('Build GitHub Render Payload').first().json.run_id;\nconst desired='mila-'+run_id;\nconst run=(obj.workflow_runs||[]).find(r=>r.display_title===desired);\nconst attempt=Number(obj.attempt||0)+1;\nif(attempt>115)throw new Error('GitHub render timed out after nearly one hour.');\nif(run?.status==='completed'&&run.conclusion!=='success')\n  throw new Error('GitHub FFmpeg render failed. Open GitHub Actions run '+run.html_url);\nreturn [{json:{ready:run?.status==='completed'&&run.conclusion==='success',\n  attempt,github_run_id:run?.id||null,run_id}}];\n"
+      }
+    },
+    {
+      "id": "f144520c-fba6-42cc-a3ac-86e9f8029f0a",
+      "name": "Final MP4 Rendered?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7200,
+        180
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7625d184-c4ac-4c9a-909b-b2001658570c",
+              "leftValue": "={{ String($json.ready) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "bffef357-bd5d-464c-adc6-2b938b05c0b4",
+      "name": "List Final MP4 Artifacts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        7440,
+        120
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ \"https://api.github.com/repos/kariemibrahiem/mila-video-renderer/actions/runs/\"+$json.github_run_id+\"/artifacts?per_page=50\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8c360566-e09c-4dd1-962a-68c286f2f92d",
+      "name": "Select Our Final MP4",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7680,
+        120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst obj=$input.first().json;\nconst run_id=$('Build GitHub Render Payload').first().json.run_id;\nconst artifact=(obj.artifacts||[]).find(a=>a.name==='mila-'+run_id&&!a.expired);\nif(!artifact?.archive_download_url)throw new Error('Rendered MP4 artifact was not found in GitHub Actions.');\nreturn [{json:{archive_download_url:artifact.archive_download_url,run_id}}];\n"
+      }
+    },
+    {
+      "id": "3113dcf2-b6cd-4d6c-b33f-efbf2208deb6",
+      "name": "Download Final MP4 ZIP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        7920,
+        120
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.archive_download_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "28a45874-f554-499a-b590-869b2763a6cb",
+      "name": "Unpack Final MP4",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        8160,
+        120
+      ],
+      "parameters": {
+        "operation": "decompress",
+        "binaryPropertyName": "data",
+        "outputPrefix": "extracted_"
+      }
+    },
+    {
+      "id": "c3572688-4e3a-498e-b673-6dc842afa304",
+      "name": "Verify Final MP4 Binary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8400,
+        120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst item=$input.first();\nconst binary=item.binary||{};\nconst key=Object.keys(binary).find(k=>/\\.mp4$/i.test(binary[k]?.fileName||''))||Object.keys(binary)[0];\nif(!key||!binary[key])throw new Error('No MP4 binary in GitHub artifact ZIP.');\nconst info=$('Build GitHub Render Payload').first().json;\nreturn [{json:{title:info.title,caption:info.caption,run_id:info.run_id},binary:{data:binary[key]}}];\n"
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $('Build GitHub Render Payload').first().json.title }}",
+        "regionCode": "EG",
+        "categoryId": "24",
+        "options": {
+          "description": "={{ $('Build GitHub Render Payload').first().json.caption }}",
+          "privacyStatus": "public",
+          "tags": "Shorts,IfTomorrowBroke,Mila,Pip,AIAnimation"
+        }
+      },
+      "id": "be4857b1-a89b-416d-84a9-7af7bfabbf55",
+      "name": "Upload to YouTube Shorts",
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        8640,
+        120
+      ],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "1pwrEJLIkJE2vaFF",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "id": "6aec6daf-a5f3-48a1-8796-5f33e1410530",
+      "name": "Publish Video Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8880,
+        120
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst result=$input.first().json;\nconst id=result.id||result.videoId||result.data?.id;\nif(!id||typeof id!=='string')throw new Error('YouTube did not confirm a video ID.');\nconst episode=$('Build GitHub Render Payload').first().json;\nreturn [{json:{title:episode.title,caption:episode.caption,\n  videoUrl:'https://www.youtube.com/watch?v='+id,episode_id:episode.payload.episode_id}}];\n"
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HQsMb9d5wUvrMdRxphVN4ZTi9Vd9H5Hpx-FQL-Hlx_0",
+          "mode": "list",
+          "cachedResultName": "videos sheet ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HQsMb9d5wUvrMdRxphVN4ZTi9Vd9H5Hpx-FQL-Hlx_0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "الورقة1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fgI0LYUfz3TIHZnh1lbPa0J2mlb2rktkGWjsPWHuPSc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "الاسم": "={{ $json.title }}",
+            "tital": "={{ $json.title }}",
+            "اللينك": "={{ $json.videoUrl }}",
+            "caption": "={{ $json.caption }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "الاسم",
+              "displayName": "الاسم",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "اللينك",
+              "displayName": "اللينك",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tital",
+              "displayName": "tital",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "caption",
+              "displayName": "caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "24463eab-d0db-49e3-b22c-db7189fa9816",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        9120,
+        120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TVqY0YmVBrTTDJGm",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5587025316",
+        "text": "=📌 <b>{{ $('Publish Video Metadata').first().json.title }}</b>\n\n📝 {{ $('Publish Video Metadata').first().json.caption }}\n\n🔗 <b>الفيديو الكامل:</b>\n{{ $('Publish Video Metadata').first().json.videoUrl }}\n\n✨ تم إنتاج الفيديو تلقائيًا.",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "87103616-da4f-4056-8531-77bb68dec407",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        9360,
+        120
+      ],
+      "webhookId": "243b39b5-b591-4549-bd17-8a28b6aa6a84",
+      "credentials": {
+        "telegramApi": {
+          "id": "vLinijtTLPPNb8CB",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Kie Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Kie Balance": {
+      "main": [
+        [
+          {
+            "node": "40 Credit Safety Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "40 Credit Safety Gate": {
+      "main": [
+        [
+          {
+            "node": "Build Scene Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Scene Prompt": {
+      "main": [
+        [
+          {
+            "node": "Character Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Character Config": {
+      "main": [
+        [
+          {
+            "node": "Prepare Six Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Six Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Create Image Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Image Task": {
+      "main": [
+        [
+          {
+            "node": "Validate Six Image Task IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Six Image Task IDs": {
+      "main": [
+        [
+          {
+            "node": "Collect Six Image IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Six Image IDs": {
+      "main": [
+        [
+          {
+            "node": "Wait for Six Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Six Images": {
+      "main": [
+        [
+          {
+            "node": "Unpack Image Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack Image Poll": {
+      "main": [
+        [
+          {
+            "node": "Check Six Image Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Image Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Six Image Jobs": {
+      "main": [
+        [
+          {
+            "node": "Merge Image Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Image Results": {
+      "main": [
+        [
+          {
+            "node": "Validate Six Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Six Images": {
+      "main": [
+        [
+          {
+            "node": "All Six Images Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All Six Images Ready?": {
+      "main": [
+        [
+          {
+            "node": "Extract Six Images",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for Six Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Six Images": {
+      "main": [
+        [
+          {
+            "node": "Choose Animated Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose Animated Hook": {
+      "main": [
+        [
+          {
+            "node": "Create Six-Second Grok Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Six-Second Grok Hook": {
+      "main": [
+        [
+          {
+            "node": "Save Hook Task ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Hook Task ID": {
+      "main": [
+        [
+          {
+            "node": "Wait for Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Hook": {
+      "main": [
+        [
+          {
+            "node": "Check Hook Job",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Hook Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Hook Job": {
+      "main": [
+        [
+          {
+            "node": "Merge Hook Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Hook Results": {
+      "main": [
+        [
+          {
+            "node": "Validate Hook Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Hook Result": {
+      "main": [
+        [
+          {
+            "node": "Hook Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hook Ready?": {
+      "main": [
+        [
+          {
+            "node": "Build GitHub Render Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build GitHub Render Payload": {
+      "main": [
+        [
+          {
+            "node": "Start Free GitHub Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Free GitHub Render": {
+      "main": [
+        [
+          {
+            "node": "Wait for GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for GitHub": {
+      "main": [
+        [
+          {
+            "node": "List GitHub Render Runs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge GitHub Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List GitHub Render Runs": {
+      "main": [
+        [
+          {
+            "node": "Merge GitHub Poll",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge GitHub Poll": {
+      "main": [
+        [
+          {
+            "node": "Find Our GitHub Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Our GitHub Run": {
+      "main": [
+        [
+          {
+            "node": "Final MP4 Rendered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final MP4 Rendered?": {
+      "main": [
+        [
+          {
+            "node": "List Final MP4 Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Final MP4 Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Select Our Final MP4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Our Final MP4": {
+      "main": [
+        [
+          {
+            "node": "Download Final MP4 ZIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Final MP4 ZIP": {
+      "main": [
+        [
+          {
+            "node": "Unpack Final MP4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack Final MP4": {
+      "main": [
+        [
+          {
+            "node": "Verify Final MP4 Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Final MP4 Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload to YouTube Shorts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to YouTube Shorts": {
+      "main": [
+        [
+          {
+            "node": "Publish Video Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish Video Metadata": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

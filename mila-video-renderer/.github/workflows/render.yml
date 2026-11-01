@@ -1,0 +1,41 @@
+name: Render Mila Video
+run-name: mila-${{ inputs.run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: true
+        type: string
+      payload:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg and free offline narrator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          python3 -m venv .venv
+          .venv/bin/pip install -q piper-tts
+          .venv/bin/python -m piper.download_voices en_US-ljspeech-medium
+      - name: Render 120 second film
+        env:
+          RENDER_PAYLOAD: ${{ inputs.payload }}
+          PIPER_PYTHON: .venv/bin/python
+        run: python3 render.py
+      - name: Save final video for n8n (one day)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mila-${{ inputs.run_id }}
+          path: final.mp4
+          retention-days: 1
+          if-no-files-found: error
